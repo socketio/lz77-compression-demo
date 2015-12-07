@@ -1,0 +1,27 @@
+{
+  "name": "LZ77 Compression Demo",
+  "description": "A demo which highlights the compressed texts by LZ77 algorithm for a realtime stream on Twitter",
+  "repository": "https://github.com/socketio/lz77-compression-demo",
+  "keywords": [
+    "lz77",
+    "compression"
+  ],
+  "env": {
+    "TWITTER_CONSUMER_KEY": {
+      "description": "Twitter OAuth consumer key",
+      "required": true
+    },
+    "TWITTER_CONSUMER_SECRET": {
+      "description": "Twitter OAuth consumer secret",
+      "required": true
+    },
+    "TWITTER_TOKEN": {
+      "description": "Twitter OAuth access token",
+      "required": true
+    },
+    "TWITTER_TOKEN_SECRET": {
+      "description": "Twitter OAuth access token secret",
+      "required": true
+    }
+  }
+}
