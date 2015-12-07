@@ -7,25 +7,11 @@ let worker = new Worker('/worker.bundle.js');
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      tweets: [],
-      data: ''
-    };
-
-    this.tweets = [];
+    this.state = { data: '' };
   }
 
   componentWillMount() {
     let socket = io();
-    socket.on('tweets', (tweets) => {
-      this.tweets = tweets;
-      this.setState({ tweets });
-    });
-    socket.on('tweet', (tweet) => {
-      let tweets = this.tweets = [tweet].concat(this.tweets).slice(0, 10);
-      this.setState({ tweets });
-    });
-
     socket.io.engine.on('upgrade', (transport) => {
       let onData = transport.onData;
       transport.onData = (data) => {
@@ -42,7 +28,6 @@ class App extends React.Component {
   render() {
     return <div className="container">
       <LZ77Visualizer key="lz77" data={this.state.data} />
-      <Tweets tweets={this.state.tweets} />
     </div>;
   }
 }
@@ -59,30 +44,6 @@ class LZ77Visualizer extends React.Component {
       .replace(/###end###/g, '</span>');
 
     return <pre dangerouslySetInnerHTML={{ __html: html }} />;
-  }
-}
-
-class Tweets extends React.Component {
-  render() {
-    let { tweets } = this.props;
-
-    return <ul className="tweets">
-      {tweets.map((tweet) => {
-        let url = `https:///twitter.com/${encodeURIComponent(tweet.user.screen_name)}/status/${encodeURIComponent(tweet.id_str)}`;
-
-        return <li key={tweet.id} className="tweet">
-          <a className="wrapper" href={url} target="_blank">
-            <div className="profile-image">
-              <img src={tweet.user.profile_image_url}/>
-            </div>
-            <div className="content">
-              <h3 className="name">{tweet.user.name}</h3>
-              <p className="text">{tweet.text}</p>
-            </div>
-          </a>
-        </li>
-      })}
-    </ul>;
   }
 }
 
