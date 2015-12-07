@@ -33,9 +33,27 @@ class App extends React.Component {
 }
 
 class LZ77Visualizer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.shouldScrollBottom = false;
+  }
+
+  componentWillUpdate() {
+    let { container } = this.refs;
+    this.shouldScrollBottom = !!container && container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+  }
+
+  componentDidUpdate() {
+    let { container } = this.refs;
+    if (container && this.shouldScrollBottom) {
+      container.scrollTop = container.scrollHeight - container.clientHeight;
+    }
+  }
+
   render() {
     let { data } = this.props;
 
+    data = data || 'Waiting for incoming data..';
     let html = htmlEscape(data)
       .replace(/###start\[(\d+)\]###/g, (_, length) => {
         let opacity = Math.min(parseInt(length, 10) / 20, 1);
@@ -43,7 +61,7 @@ class LZ77Visualizer extends React.Component {
       })
       .replace(/###end###/g, '</span>');
 
-    return <pre dangerouslySetInnerHTML={{ __html: html }} />;
+    return <pre ref="container" className="lz77" dangerouslySetInnerHTML={{ __html: html }} />;
   }
 }
 
