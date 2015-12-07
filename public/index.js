@@ -1,18 +1,18 @@
 import io from 'socket.io-client';
 import React from 'react';
 import { render } from 'react-dom';
-import LZ77Analyzer from './lz77-analyzer';
+
+let worker = new Worker('/worker.bundle.js');
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       tweets: [],
-      data: []
+      data: ''
     };
 
     this.tweets = [];
-    this.data = [];
   }
 
   componentWillMount() {
@@ -29,18 +29,14 @@ class App extends React.Component {
     socket.io.engine.on('upgrade', (transport) => {
       let onData = transport.onData;
       transport.onData = (data) => {
-        if (data.length < 1024) return;
-
-        this.data.push(data);
-        while (this.data.slice(1).join('').length > 1 << 15) {
-          this.data.shift();
-        }
-        setTimeout(() => {
-          this.setState({ data: this.data });
-        }, 0);
+        worker.postMessage(data);
         onData.call(transport, data);
       };
     });
+
+    worker.onmessage = (e) => {
+      this.setState({ data: e.data });
+    };
   }
 
   render() {
@@ -52,85 +48,10 @@ class App extends React.Component {
 }
 
 class LZ77Visualizer extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.lz77 = new LZ77Analyzer({
-      minStringLength: 3,
-      maxStringLength: 258,
-      windowLength: 1 << 15
-    });
-  }
-
   render() {
     let { data } = this.props;
 
-    let mappings = {};
-
-    this.lz77.compress(data.join(''), function(pos, len, distance) {
-      let start = mappings[pos] = mappings[pos] || [];
-      start.push({ type: 'start', length: len });
-
-      let endPos = pos + len;
-      let end = mappings[endPos] = mappings[endPos] || [];
-      end.push({ type: 'end', length: len });
-    });
-
-    let source = data.map((d) => {
-      return d.slice(0, 2) + '\n' + JSON.stringify(JSON.parse(d.slice(2)), null, 2);
-    }).join('\n');
-    let pos = 0;
-    let cursor = 0;
-
-    Object.keys(mappings).forEach((p) => {
-      while (pos < p) {
-        let c = source[cursor];
-        switch (c) {
-          case '\n':
-            while (source[++cursor] == ' ');
-            cursor--;
-            break;
-          case ':':
-            if (source.substr(cursor - 1, 3) == '": ') cursor++;
-            pos++;
-            break;
-          default:
-            pos++;
-            break;
-        }
-        cursor++;
-      }
-
-      // check next
-      let c = source[cursor];
-      switch (c) {
-        case '\n':
-          while (source[++cursor] == ' ');
-          break;
-        case ':':
-          if (source.substr(cursor - 1, 3) == '": ') cursor++;
-          break;
-      }
-
-      let mapping = mappings[p];
-      mapping.forEach((m) => {
-        let marker;
-        switch (m.type) {
-          case 'start':
-            marker = '###start[' + m.length + ']###';
-            break;
-          case 'end':
-            marker = '###end###';
-            break;
-          default:
-            throw new Error('Unexpected type: ' + m.type);
-        }
-        source = source.slice(0, cursor) + marker + source.slice(cursor);
-        cursor += marker.length;
-      });
-    });
-
-    let html = htmlEscape(source)
+    let html = htmlEscape(data)
       .replace(/###start\[(\d+)\]###/g, (_, length) => {
         let opacity = Math.min(parseInt(length, 10) / 20, 1);
         return '<span style="background:rgba(255,255,0,' + opacity + ')">';
