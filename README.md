@@ -1,6 +1,6 @@
 # LZ77 Compression Demo
 
-A demo which hightlishgts the compressed texts by LZ77 algorithm a realtime stream on Twitter.
+A demo which highlights the compressed texts by LZ77 algorithm a realtime stream on Twitter.
 
 ## How to use
 Please prepare a [Twitter access token](https://dev.twitter.com/oauth/application-only).
