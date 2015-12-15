@@ -72,7 +72,8 @@ class LZ77Visualizer extends React.Component {
       ref="container"
       style={{
         height: `${this.props.height}px`,
-        overflow: 'scroll'
+        overflow: 'scroll',
+        font: '12px Consolas, Menlo, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace, serif'
       }}
       className="lz77"
       dangerouslySetInnerHTML={{ __html: html }} />;
